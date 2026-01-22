@@ -30,7 +30,12 @@ const App: React.FC = () => {
     currentBalance: 0
   });
 
+  // Load session and data
   useEffect(() => {
+    const savedUser = localStorage.getItem('trum_a9_session');
+    if (savedUser) {
+      setCurrentUser(JSON.parse(savedUser));
+    }
     loadAllData();
   }, []);
 
@@ -69,6 +74,7 @@ const App: React.FC = () => {
       const user = users?.find(u => u.user_name === loginForm.username && u.password === loginForm.password);
       if (user) {
         setCurrentUser(user);
+        localStorage.setItem('trum_a9_session', JSON.stringify(user));
         setShowLoginModal(false);
         setLoginForm({ username: '', password: '' });
       } else {
@@ -79,9 +85,14 @@ const App: React.FC = () => {
     }
   };
 
+  const handleLogout = () => {
+    setCurrentUser(null);
+    localStorage.removeItem('trum_a9_session');
+    setActiveTab('dashboard');
+  };
+
   const isAdmin = !!currentUser;
 
-  // Filter navigation items based on role
   const filteredNavItems = NAVIGATION_ITEMS.filter(item => {
     if (item.id === 'settings' && !isAdmin) return false;
     return true;
@@ -158,12 +169,34 @@ const App: React.FC = () => {
     setIsSaving(false);
   };
 
+  const handleUpdateTransaction = async (updatedTx: Transaction) => {
+    if (!isAdmin) return;
+    const updatedTransactions = state.transactions.map(t => t.id === updatedTx.id ? updatedTx : t);
+    setState(prev => ({ ...prev, transactions: updatedTransactions }));
+    
+    setIsSaving(true);
+    const success = await updateRecord<Transaction[]>(API_CONFIG.BIN_IDS.TRANSACTIONS, updatedTransactions);
+    if (success) setLastSaved(new Date());
+    setIsSaving(false);
+  };
+
+  const handleDeleteTransaction = async (id: string) => {
+    if (!isAdmin) return;
+    const updatedTransactions = state.transactions.filter(t => t.id !== id);
+    setState(prev => ({ ...prev, transactions: updatedTransactions }));
+    
+    setIsSaving(true);
+    const success = await updateRecord<Transaction[]>(API_CONFIG.BIN_IDS.TRANSACTIONS, updatedTransactions);
+    if (success) setLastSaved(new Date());
+    setIsSaving(false);
+  };
+
   const renderContent = () => {
     if (isLoading) {
       return (
         <div className="flex flex-col items-center justify-center py-32 space-y-4">
           <Loader2 size={48} className="animate-spin text-blue-600" />
-          <p className="text-gray-500 font-medium italic">Đang tải dữ liệu...</p>
+          <p className="text-gray-500 font-medium italic">Đang tải dữ liệu Trùm A9...</p>
         </div>
       );
     }
@@ -186,6 +219,8 @@ const App: React.FC = () => {
           <TransactionManagement 
             state={state} 
             onAddTransaction={handleAddTransaction}
+            onUpdateTransaction={handleUpdateTransaction}
+            onDeleteTransaction={handleDeleteTransaction}
             isAdmin={isAdmin}
           />
         );
@@ -207,14 +242,14 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
+    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-inter">
       {/* Mobile Top Bar */}
       <div className="md:hidden bg-white border-b border-gray-100 p-4 flex items-center justify-between sticky top-0 z-40">
         <div className="flex items-center space-x-2">
-          <div className="bg-blue-600 p-2 rounded-lg text-white">
+          <div className="bg-emerald-600 p-2 rounded-lg text-white">
             <Wallet size={20} />
           </div>
-          <span className="font-bold text-lg text-gray-900">FundPro</span>
+          <span className="font-bold text-lg text-gray-900 tracking-tight">Trùm A9</span>
         </div>
         <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
           {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
@@ -225,13 +260,13 @@ const App: React.FC = () => {
       <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-100 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isSidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:shadow-none'}`}>
         <div className="h-full flex flex-col p-6">
           <div className="hidden md:flex items-center space-x-3 mb-10">
-            <div className="bg-blue-600 p-2.5 rounded-xl text-white shadow-lg shadow-blue-200"><Wallet size={24} /></div>
-            <span className="font-extrabold text-xl tracking-tight text-gray-900">FundPro</span>
+            <div className="bg-emerald-600 p-2.5 rounded-xl text-white shadow-lg shadow-emerald-200"><Wallet size={24} /></div>
+            <span className="font-extrabold text-xl tracking-tight text-gray-900">Trùm A9</span>
           </div>
           
           <nav className="flex-1 space-y-2">
             {filteredNavItems.map((item) => (
-              <button key={item.id} onClick={() => { setActiveTab(item.id); setIsSidebarOpen(false); }} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${activeTab === item.id ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
+              <button key={item.id} onClick={() => { setActiveTab(item.id); setIsSidebarOpen(false); }} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${activeTab === item.id ? 'bg-emerald-50 text-emerald-600 font-semibold' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
                 {item.icon}
                 <span>{item.label}</span>
               </button>
@@ -245,11 +280,11 @@ const App: React.FC = () => {
                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Admin Active</span>
                   <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
                 </div>
-                <button onClick={handleSync} disabled={isSaving} className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors disabled:opacity-50 text-sm">
+                <button onClick={handleSync} disabled={isSaving} className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-emerald-600 bg-emerald-50 hover:bg-emerald-100 transition-colors disabled:opacity-50 text-sm">
                   <RefreshCw size={18} className={isSaving ? 'animate-spin' : ''} />
                   <span>Đồng bộ Cloud</span>
                 </button>
-                <button onClick={() => {setCurrentUser(null); setActiveTab('dashboard');}} className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 transition-colors text-sm">
+                <button onClick={handleLogout} className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 transition-colors text-sm">
                   <LogOut size={18} />
                   <span>Đăng xuất</span>
                 </button>
@@ -293,7 +328,7 @@ const App: React.FC = () => {
                 <p className="text-sm font-semibold text-gray-900">{currentUser ? currentUser.user_name : 'Khách'}</p>
                 <p className="text-xs text-gray-500">{isAdmin ? 'Quản trị viên' : 'Người xem'}</p>
               </div>
-              <div className={`h-10 w-10 rounded-full ${isAdmin ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'} flex items-center justify-center font-bold border-2 border-white shadow-sm`}>
+              <div className={`h-10 w-10 rounded-full ${isAdmin ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-400'} flex items-center justify-center font-bold border-2 border-white shadow-sm`}>
                 {isAdmin ? 'AD' : 'G'}
               </div>
             </div>

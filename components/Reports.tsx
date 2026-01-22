@@ -39,7 +39,8 @@ const Reports: React.FC<Props> = ({ state }) => {
     return acc;
   }, {} as Record<string, { month: string; income: number; expense: number }>);
 
-  const monthlyData = Object.values(monthlyDataMap).sort((a, b) => {
+  // Fix: Explicitly type sort parameters to avoid 'unknown' type error on month property access
+  const monthlyData = Object.values(monthlyDataMap).sort((a: { month: string }, b: { month: string }) => {
     const [m1, y1] = a.month.split('/').map(Number);
     const [m2, y2] = b.month.split('/').map(Number);
     return y1 === y2 ? m1 - m2 : y1 - y2;

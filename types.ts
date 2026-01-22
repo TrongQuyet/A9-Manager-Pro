@@ -10,6 +10,8 @@ export interface Member {
   id: string;
   name: string;
   email: string;
+  phone: string;
+  address: string;
   role: MemberRole;
   note: string;
   joinedAt: string;
@@ -23,6 +25,7 @@ export interface Transaction {
   amount: number;
   description: string;
   category: string;
+  recipient: string;
   date: string;
   memberId: string;
 }
