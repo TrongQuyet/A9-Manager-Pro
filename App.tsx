@@ -336,6 +336,28 @@ const App: React.FC = () => {
         </header>
         
         <div className="p-4 md:p-10 overflow-y-auto max-w-7xl mx-auto w-full">
+          {/* Global Admin Login Banner for all tabs when not logged in */}
+          {!isAdmin && !isLoading && (
+            <div className="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-3xl p-6 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm animate-in slide-in-from-top-4 duration-500">
+              <div className="flex items-center gap-5">
+                <div className="bg-white p-3 rounded-2xl text-blue-600 shadow-sm border border-blue-50">
+                  <ShieldAlert size={28} />
+                </div>
+                <div>
+                  <h4 className="text-lg font-bold text-blue-900 leading-tight">Bạn đang ở chế độ xem</h4>
+                  <p className="text-sm text-blue-600/80 mt-1 font-medium">Đăng nhập tài khoản Quản trị để mở khóa chức năng quản lý quỹ.</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowLoginModal(true)}
+                className="flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-2xl text-sm font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 group whitespace-nowrap"
+              >
+                <LogIn size={18} className="group-hover:translate-x-0.5 transition-transform" /> 
+                Đăng nhập Admin
+              </button>
+            </div>
+          )}
+          
           {renderContent()}
         </div>
       </main>
