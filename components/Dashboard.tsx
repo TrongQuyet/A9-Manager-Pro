@@ -1,17 +1,19 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, 
   PieChart as RePieChart, Pie
 } from 'recharts';
 import { Transaction, AppState } from '../types';
-import { ArrowUpCircle, ArrowDownCircle, TrendingUp } from 'lucide-react';
+import { ArrowUpCircle, ArrowDownCircle, TrendingUp, X, Calendar, FileText, User, UserCheck, CreditCard } from 'lucide-react';
 
 interface Props {
   state: AppState;
 }
 
 const Dashboard: React.FC<Props> = ({ state }) => {
+  const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
+
   const totalIncome = state.transactions
     .filter(t => t.type === 'INCOME')
     .reduce((acc, curr) => acc + curr.amount, 0);
@@ -27,9 +29,10 @@ const Dashboard: React.FC<Props> = ({ state }) => {
 
   const recentTransactions = [...state.transactions]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 5);
+    .slice(0, 6);
 
   return (
+    <>
     <div className="space-y-6">
       {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -98,33 +101,106 @@ const Dashboard: React.FC<Props> = ({ state }) => {
           </div>
         </div>
 
-        {/* Recent Activity */}
+        {/* Recent Activity with Detail View Capability */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
           <h4 className="text-lg font-semibold mb-6">Giao dịch gần đây</h4>
           <div className="space-y-4">
             {recentTransactions.map((tx) => (
-              <div key={tx.id} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-xl transition-colors">
-                <div className="flex items-center space-x-3">
-                  <div className={`p-2 rounded-lg ${tx.type === 'INCOME' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
-                    {tx.type === 'INCOME' ? <ArrowUpCircle size={20} /> : <ArrowDownCircle size={20} />}
+              <div 
+                key={tx.id} 
+                onClick={() => setSelectedTx(tx)}
+                className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-2xl transition-all cursor-pointer group border border-transparent hover:border-gray-100"
+              >
+                <div className="flex items-center space-x-4">
+                  <div className={`p-3 rounded-xl flex items-center justify-center ${tx.type === 'INCOME' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
+                    {tx.type === 'INCOME' ? <ArrowUpCircle size={24} /> : <ArrowDownCircle size={24} />}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{tx.description}</p>
-                    <p className="text-xs text-gray-500">{new Date(tx.date).toLocaleDateString('vi-VN')}</p>
+                    <p className="text-sm font-bold text-gray-900 group-hover:text-emerald-700 transition-colors">{tx.description}</p>
+                    <p className="text-xs text-gray-400 font-medium">{new Date(tx.date).toLocaleDateString('vi-VN')}</p>
                   </div>
                 </div>
-                <p className={`text-sm font-bold ${tx.type === 'INCOME' ? 'text-emerald-600' : 'text-red-600'}`}>
+                <p className={`text-base font-bold ${tx.type === 'INCOME' ? 'text-emerald-600' : 'text-red-600'}`}>
                   {tx.type === 'INCOME' ? '+' : '-'}{tx.amount.toLocaleString('vi-VN')} đ
                 </p>
               </div>
             ))}
             {recentTransactions.length === 0 && (
-              <p className="text-center text-gray-500 py-8">Chưa có giao dịch nào.</p>
+              <p className="text-center text-gray-500 py-12 italic">Chưa có giao dịch nào.</p>
             )}
           </div>
         </div>
       </div>
     </div>
+
+          {/* Transaction Detail Modal for Dashboard - Optimized Layout */}
+      {selectedTx && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-[32px] w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
+            <div className={`pt-10 pb-8 px-8 ${selectedTx.type === 'INCOME' ? 'bg-emerald-600' : 'bg-red-600'} text-white text-center relative`}>
+              <button 
+                onClick={() => setSelectedTx(null)}
+                className="absolute top-5 right-5 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-all hover:rotate-90"
+              >
+                <X size={20} />
+              </button>
+              <div className="inline-flex p-4 bg-white/15 backdrop-blur-md rounded-3xl mb-4 border border-white/20 shadow-xl">
+                {selectedTx.type === 'INCOME' ? <ArrowUpCircle size={40} /> : <ArrowDownCircle size={40} />}
+              </div>
+              <h3 className="text-4xl font-black tracking-tight">{selectedTx.type === 'INCOME' ? '+' : '-'}{selectedTx.amount.toLocaleString('vi-VN')} đ</h3>
+              <p className="text-white/80 font-bold uppercase tracking-widest text-xs mt-2">{selectedTx.category}</p>
+            </div>
+            
+            <div className="p-8 space-y-6">
+              <div className="grid grid-cols-1 gap-5">
+                <div className="flex items-start gap-4">
+                  <div className="p-2.5 bg-gray-50 rounded-xl text-gray-400 border border-gray-100"><Calendar size={18} /></div>
+                  <div>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Thời gian</p>
+                    <p className="text-gray-900 font-bold">{new Date(selectedTx.date).toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="p-2.5 bg-gray-50 rounded-xl text-gray-400 border border-gray-100"><FileText size={18} /></div>
+                  <div>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Nội dung</p>
+                    <p className="text-gray-900 font-semibold leading-relaxed">{selectedTx.description}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="p-2.5 bg-gray-50 rounded-xl text-gray-400 border border-gray-100"><User size={18} /></div>
+                  <div>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Người thực hiện</p>
+                    <p className="text-gray-900 font-semibold">
+                      {state.members.find(m => m.id === selectedTx.memberId)?.name || 'Ẩn danh'}
+                    </p>
+                  </div>
+                </div>
+
+                {selectedTx.recipient && (
+                  <div className="flex items-start gap-4">
+                    <div className="p-2.5 bg-gray-50 rounded-xl text-gray-400 border border-gray-100"><UserCheck size={18} /></div>
+                    <div>
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Người thụ hưởng</p>
+                      <p className="text-emerald-600 font-bold">{selectedTx.recipient}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <button 
+                onClick={() => setSelectedTx(null)}
+                className={`w-full py-4 text-white font-black rounded-2xl transition-all shadow-xl hover:scale-[1.02] active:scale-95 ${selectedTx.type === 'INCOME' ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-100' : 'bg-red-600 hover:bg-red-700 shadow-red-100'}`}
+              >
+                Đóng chi tiết
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
