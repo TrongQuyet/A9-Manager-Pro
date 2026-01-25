@@ -5,7 +5,8 @@ import {
   PieChart as RePieChart, Pie
 } from 'recharts';
 import { Transaction, AppState } from '../types';
-import { ArrowUpCircle, ArrowDownCircle, TrendingUp, X, Calendar, FileText, User, UserCheck, CreditCard } from 'lucide-react';
+import { ArrowUpCircle, ArrowDownCircle, TrendingUp, X, Calendar, FileText, User, UserCheck, CreditCard, Users, Heart } from 'lucide-react';
+import logo from "../Assets/a9pro.jpg";
 
 interface Props {
   state: AppState;
@@ -34,6 +35,41 @@ const Dashboard: React.FC<Props> = ({ state }) => {
   return (
     <>
     <div className="space-y-6">
+      {/* Group Banner Section */}
+      <div className="relative h-64 md:h-80 w-full rounded-[32px] overflow-hidden shadow-2xl shadow-emerald-100/50 group border-4 border-white">
+        <img 
+          src={logo}
+          alt="A9 Group" 
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+        <div className="absolute bottom-0 left-0 p-8 w-full flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="bg-emerald-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest animate-pulse">Official Group</span>
+              <span className="bg-white/20 backdrop-blur-md text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">Since 2021</span>
+            </div>
+            <h1 className="text-3xl md:text-5xl font-black text-white tracking-tighter drop-shadow-lg">
+              Trùm A9
+            </h1>
+            <p className="text-emerald-300 font-bold text-sm md:text-base flex items-center gap-2">
+              <Heart size={16} className="fill-emerald-500 text-emerald-500" /> 
+              Gắn kết anh em - Vững bền ngân quỹ
+            </p>
+          </div>
+          <div className="hidden md:flex items-center gap-4 bg-white/10 backdrop-blur-xl p-4 rounded-2xl border border-white/20">
+             <div className="text-right">
+                <p className="text-[10px] font-black text-white/60 uppercase tracking-widest">Thành viên</p>
+                <p className="text-xl font-black text-white">{state.members.length}</p>
+             </div>
+             <div className="w-px h-8 bg-white/20"></div>
+             <div className="text-right">
+                <p className="text-[10px] font-black text-white/60 uppercase tracking-widest">Hoạt động</p>
+                <p className="text-xl font-black text-white">{state.transactions.length}</p>
+             </div>
+          </div>
+        </div>
+      </div>
       {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center space-x-4">
